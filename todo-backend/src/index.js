@@ -1,31 +1,28 @@
 const Koa = require('koa');
+const Router = require('koa-router');
 
 const app = new Koa();
+const router = new Router();
 
-// app.use((ctx,next) => {}) : Koa의 미들웨어 함수
-// ctx: Context의 줄임말로, 웹 요청과 응답에 관한 정보
-// next: 현재 처리 중인 미들웨어의 다음 미들웨어를 호출하는 함수 (optional)
-app.use(async (ctx, next) => {
-  // Chrome 브라우저는 사용자가 웹 페이지에 들어가면 해당 사이트의 아이콘 파일인 /favicon.ico 파일을 서버에 요청하기 때문에 결과에 /경로와 /favicon.ico 경로 모두 나타남
-  console.log(ctx.url);
-  console.log(1);
-  if (ctx.query.authorized !== '1') {
-    ctx.status = 401; // Unauthorized
-    return;
-  }
-  // next함수 호출하면 Promise 반환
-  await next();
-  console.log('END');
+// 라우터 설정
+// router.get('라우터 경로', 라우트에 적용할 미들웨어 함수);
+router.get('/', (ctx) => {
+  ctx.body = '홈';
 });
 
-app.use((ctx, next) => {
-  console.log(2);
-  next();
+router.get('/about/:name?', (ctx) => {
+  const { name } = ctx.params;
+  ctx.body = name ? `${name}의 소개` : '소개';
 });
 
-app.use((ctx) => {
-  ctx.body = 'hello world';
+router.get('/tasks', (ctx) => {
+  const { id } = ctx.query;
+  // id의 존재 유무에 따라 다른 결과 출력
+  ctx.body = id ? `태스크 #${id}` : '태스크 아이디가 없습니다.';
 });
+
+// app 인스턴스에 라우터 적용
+app.use(router.routes()).use(router.allowedMethods());
 
 app.listen(4000, () => {
   console.log('Listening to port 4000');
